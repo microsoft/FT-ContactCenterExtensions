@@ -1,0 +1,1538 @@
+{
+  "version": "Notebook/1.0",
+  "name": "Contact Center and Dataverse Operations",
+  "items": [
+    {
+      "type": 1,
+      "name": "text-8579fb09-e8f7-43ca-9ac0-91b8b3f5846c",
+      "content": {
+        "json": "# Contact Center and Dataverse Operations\n**Demo-ready observability for voice, messaging, routing, APIs, throttling, failures, and investigation.**"
+      }
+    },
+    {
+      "type": 9,
+      "name": "parameters",
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "parameters": [
+          {
+            "id": "a2eb317e-5056-44b6-8e81-ccd162a8e355",
+            "version": "KqlParameterItem/1.0",
+            "name": "SelectedPage",
+            "type": 1,
+            "value": "Overview",
+            "isRequired": true,
+            "isHiddenWhenLocked": true
+          },
+          {
+            "id": "41d80c29-66e0-4380-80be-040110dbe2f8",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time range",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                }
+              ],
+              "allowCustom": true
+            }
+          },
+          {
+            "id": "08e9b241-8bf5-44b0-955e-69c2c04e4e21",
+            "version": "KqlParameterItem/1.0",
+            "name": "ApplicationInsightsResource",
+            "label": "Application Insights resource",
+            "type": 5,
+            "isRequired": true,
+            "query": "where type == 'microsoft.insights/components' | project value=id, label=name, group=resourceGroup",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "value": "",
+            "typeSettings": {
+              "showDefault": false,
+              "resourceTypeFilter": {
+                "microsoft.insights/components": true
+              },
+              "additionalResourceOptions": []
+            }
+          },
+          {
+            "id": "b93fb934-1233-43aa-8c6d-3bfcc20a1d30",
+            "version": "KqlParameterItem/1.0",
+            "name": "Organization",
+            "label": "Organization / environment",
+            "type": 2,
+            "isRequired": false,
+            "query": "union isfuzzy=true\r\n    (traces | extend cd=todynamic(customDimensions)),\r\n    (requests | extend cd=todynamic(customDimensions)),\r\n    (dependencies | extend cd=todynamic(customDimensions))\r\n| extend Org=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where isnotempty(Org)\r\n| distinct value=Org, label=Org\r\n| order by label asc",
+            "queryType": 0,
+            "resourceType": "microsoft.insights/components",
+            "crossComponentResources": [
+              "{ApplicationInsightsResource}"
+            ],
+            "timeContextFromParameter": "TimeRange",
+            "defaultValue": "value::all",
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "showDefault": false,
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*"
+            }
+          },
+          {
+            "id": "9fedd66a-2306-4d32-b8a0-a2e29ae0e51b",
+            "version": "KqlParameterItem/1.0",
+            "name": "Channel",
+            "label": "Channel",
+            "type": 2,
+            "isRequired": false,
+            "query": "traces\r\n| extend cd=todynamic(customDimensions)\r\n| extend Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType))\r\n| where isnotempty(Channel)\r\n| distinct value=Channel, label=Channel\r\n| order by label asc",
+            "queryType": 0,
+            "resourceType": "microsoft.insights/components",
+            "crossComponentResources": [
+              "{ApplicationInsightsResource}"
+            ],
+            "timeContextFromParameter": "TimeRange",
+            "defaultValue": "value::all",
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "showDefault": false,
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*"
+            }
+          },
+          {
+            "id": "6d30e112-eb72-4603-abfd-79fd27926d65",
+            "version": "KqlParameterItem/1.0",
+            "name": "Queue",
+            "label": "Queue",
+            "type": 2,
+            "isRequired": false,
+            "query": "traces\r\n| extend cd=todynamic(customDimensions)\r\n| where tostring(cd[\"powerplatform.analytics.subscenario\"]) == \"RouteToQueue\"\r\n| extend QueueName=tostring(parse_json(tostring(cd[\"omnichannel.result\"])).DisplayName)\r\n| where isnotempty(QueueName)\r\n| distinct value=QueueName, label=QueueName\r\n| order by label asc",
+            "queryType": 0,
+            "resourceType": "microsoft.insights/components",
+            "crossComponentResources": [
+              "{ApplicationInsightsResource}"
+            ],
+            "timeContextFromParameter": "TimeRange",
+            "defaultValue": "value::all",
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "showDefault": false,
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*"
+            }
+          },
+          {
+            "id": "82f1900a-3637-4ef9-b2a1-a6153f393622",
+            "version": "KqlParameterItem/1.0",
+            "name": "InvestigationId",
+            "label": "Conversation or correlation ID",
+            "type": 1,
+            "isRequired": false,
+            "value": ""
+          },
+          {
+            "id": "0ebb74d1-4543-46a6-9e87-8a13ed0fba40",
+            "version": "KqlParameterItem/1.0",
+            "name": "SlowThresholdMs",
+            "label": "Slow threshold (ms)",
+            "type": 1,
+            "isRequired": true,
+            "value": "5000"
+          }
+        ]
+      }
+    },
+    {
+      "type": 11,
+      "name": "page-tabs",
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "cellValue": "SelectedPage",
+            "style": "link",
+            "linkTarget": "parameter",
+            "linkLabel": "Overview",
+            "subTarget": "Overview"
+          },
+          {
+            "cellValue": "SelectedPage",
+            "style": "link",
+            "linkTarget": "parameter",
+            "linkLabel": "Voice",
+            "subTarget": "Voice"
+          },
+          {
+            "cellValue": "SelectedPage",
+            "style": "link",
+            "linkTarget": "parameter",
+            "linkLabel": "Messaging",
+            "subTarget": "Messaging"
+          },
+          {
+            "cellValue": "SelectedPage",
+            "style": "link",
+            "linkTarget": "parameter",
+            "linkLabel": "Routing",
+            "subTarget": "Routing"
+          },
+          {
+            "cellValue": "SelectedPage",
+            "style": "link",
+            "linkTarget": "parameter",
+            "linkLabel": "APIs and Throttling",
+            "subTarget": "APIs"
+          },
+          {
+            "cellValue": "SelectedPage",
+            "style": "link",
+            "linkTarget": "parameter",
+            "linkLabel": "Failures and Performance",
+            "subTarget": "Failures"
+          },
+          {
+            "cellValue": "SelectedPage",
+            "style": "link",
+            "linkTarget": "parameter",
+            "linkLabel": "Investigator",
+            "subTarget": "Investigator"
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "name": "page-Overview",
+      "conditionalVisibility": {
+        "value": "Overview",
+        "comparison": "isEqualTo",
+        "parameterName": "SelectedPage"
+      },
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Overview",
+        "expandable": false,
+        "expanded": true,
+        "items": [
+          {
+            "type": 1,
+            "name": "text-f548367f-cbfb-49e3-a3ef-44de52c3febe",
+            "content": {
+              "json": "## Contact Center and Dataverse operational health\nA single operational view across conversation diagnostics, Dataverse APIs, throttling, dependencies, and failures.\n\n> **Data readiness:** Contact Center events arrive in \traces; Dataverse API calls in \requests; plug-ins and SDK calls in dependencies; failures in \u001bxceptions. Exports can take up to 24 hours to populate."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-240fcd67-b383-4534-8d8c-603e1b864f60",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Conversation events",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| summarize ['Conversation events']=count()",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-3048881f-fb5a-4ec4-93d2-50eca1e3acc3",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Distinct conversations",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where isnotempty(ConversationId)\r\n| summarize Conversations=dcount(ConversationId)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-70da19aa-522e-4c7d-9a06-a8c44576b66c",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "HTTP 429 responses",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize ['HTTP 429 responses']=countif(resultCode == \"429\")",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-280c460d-c769-4625-a5fb-6c590405a1b9",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Dataverse failures",
+              "query": "union isfuzzy=true\r\n    (requests | where timestamp {TimeRange} | where success == false),\r\n    (dependencies | where timestamp {TimeRange} | where success == false),\r\n    (exceptions | where timestamp {TimeRange})\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize Failures=count()",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-b6b35700-0c1e-4673-972a-17f32e4a129b",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Telemetry arrival by table",
+              "query": "union isfuzzy=true withsource=TelemetryTable\r\n    (requests | where timestamp {TimeRange}),\r\n    (dependencies | where timestamp {TimeRange}),\r\n    (pageViews | where timestamp {TimeRange}),\r\n    (traces | where timestamp {TimeRange}),\r\n    (customEvents | where timestamp {TimeRange}),\r\n    (exceptions | where timestamp {TimeRange})\r\n| summarize Records=count(), FirstSeen=min(timestamp), LastSeen=max(timestamp) by TelemetryTable\r\n| order by Records desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "barchart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-ce65479b-6cb9-4a83-8912-ba6647a37179",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Conversation events by channel",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| summarize Events=count(), Conversations=dcount(ConversationId) by Channel=iff(isempty(Channel), \"(unknown)\", Channel)\r\n| order by Events desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "piechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-b9db3b1d-24e1-4b30-b9fa-88335b21f279",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Operational anomaly trend",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario in (\"CSRRejected\",\"CSRNotificationTimeout\",\"ConversationAutoRejected\",\"CustomerDisconnected\",\"Call Ended\",\"TimeoutRuleTriggered\",\"ChatAuthentication\")\r\n    or Description has_any (\"error\",\"fail\",\"timeout\")\r\n| summarize Events=count() by bin(timestamp,{TimeRange:grain}), Subscenario\r\n| order by timestamp asc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "timechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-6c04d6f4-a474-430b-914e-d7b6653ca08a",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Items requiring attention",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| extend QueueName=tostring(Result.DisplayName)\r\n| where \"{Queue}\" == \"*\" or QueueName == \"{Queue}\"\r\n| where Subscenario in (\"CSRRejected\",\"CSRNotificationTimeout\",\"ConversationAutoRejected\",\"CustomerDisconnected\",\"Call Ended\",\"TimeoutRuleTriggered\",\"ChatAuthentication\")\r\n    or Description has_any (\"error\",\"fail\",\"timeout\")\r\n| project timestamp, ConversationId, Channel, QueueName, Subscenario, EventType, Description, AgentId, CallId\r\n| order by timestamp desc\r\n| take 200",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "name": "page-Voice",
+      "conditionalVisibility": {
+        "value": "Voice",
+        "comparison": "isEqualTo",
+        "parameterName": "SelectedPage"
+      },
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Voice",
+        "expandable": false,
+        "expanded": true,
+        "items": [
+          {
+            "type": 1,
+            "name": "text-9c282ff1-2f15-44bd-86b6-a5eca27c75f7",
+            "content": {
+              "json": "## Voice operations\nCall lifecycle, connection, waiting, callback, transcription, transfers, consults, and unsuccessful call-end diagnostics."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-bf4d013f-1cd5-4a61-9edc-8a72f10904e3",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Voice conversations",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Channel has \"voice\" or Subscenario startswith \"VOICE_\" or Subscenario in (\"Call Connect\",\"Wait for Agent\",\"Callback\",\"Transcription\",\"Call Ended\")\r\n| summarize ['Voice conversations']=dcount(ConversationId)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-dabe8d2a-d861-4c00-bfdb-08ccb6ca4be7",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Unsuccessful calls",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where EventType == \"CallEndDiagnosticEvent\" or Subscenario == \"Call Ended\"\r\n| summarize ['Unsuccessful calls']=dcountif(ConversationId, CallStatusCode != 0)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-3af0fd85-daed-497b-b51c-fdfb2bf8297b",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Call connections",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| summarize ['Call connections']=countif(Subscenario == \"Call Connect\")",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-9ed764d0-87a6-40da-ac1e-1e13c933c1fc",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Voice lifecycle trend",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Channel has \"voice\" or Subscenario startswith \"VOICE_\" or Subscenario in (\"Call Connect\",\"Wait for Agent\",\"Callback\",\"Transcription\",\"Call Ended\")\r\n| summarize Events=count() by bin(timestamp,{TimeRange:grain}), Subscenario\r\n| order by timestamp asc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "timechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-b86b3921-4b5a-42a9-85af-caf5985b3863",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Call outcomes",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where EventType == \"CallEndDiagnosticEvent\" or Subscenario == \"Call Ended\"\r\n| summarize Calls=dcount(ConversationId), Events=count() by CallStatusCode, Description\r\n| order by Calls desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "barchart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-c3f78a89-825d-4660-a31e-35e2188b7b72",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Voice controls and media events",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario startswith \"VOICE_\" or Subscenario in (\"Transcription\",\"Callback\",\"Wait for Agent\",\"CALLQUALITYSURVEY_SHOWN2DISMISSED\")\r\n| summarize Events=count() by Subscenario\r\n| order by Events desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "piechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-4b20d41c-086e-40f7-adc5-a194c1991908",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Voice transfer and consult issues",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario in (\"Transfer\",\"Consult\",\"CONSULT_BYVOICE_REQUESTAGENT\",\"TransferToExternalInitiated\",\"ConsultToExternalInitiated\",\"ConsultToExternalClosed\",\"QueueConsult\",\"CancelQueueConsult\")\r\n| project timestamp, ConversationId, Channel, Subscenario, Event, Action, Description, AgentId, CallId, customDimensions\r\n| order by timestamp desc\r\n| take 300",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-1a5bb2a5-306b-449d-917c-d8a016da2e50",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Unsuccessful call details",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where EventType == \"CallEndDiagnosticEvent\" or Subscenario == \"Call Ended\"\r\n| where CallStatusCode != 0 or Description has_any (\"error\",\"fail\",\"disconnect\")\r\n| project timestamp, ConversationId, CallId, CallStatusCode, Description, Event, Action, operation_Id, customDimensions\r\n| order by timestamp desc\r\n| take 300",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "name": "page-Messaging",
+      "conditionalVisibility": {
+        "value": "Messaging",
+        "comparison": "isEqualTo",
+        "parameterName": "SelectedPage"
+      },
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Messaging",
+        "expandable": false,
+        "expanded": true,
+        "items": [
+          {
+            "type": 1,
+            "name": "text-d34a9d57-6bb4-415c-ad64-185d633965f5",
+            "content": {
+              "json": "## Messaging and live chat\nAuthentication, reconnection, message processing, timeout rules, surveys, transcripts, and widget health."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-965f5a34-9f13-4f02-a4e7-196499310ebb",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Messaging conversations",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Channel has_any (\"chat\",\"message\",\"sms\",\"whatsapp\",\"facebook\",\"teams\") or Subscenario in (\"MessageProcessed\",\"ChatReconnection\",\"ChatAuthentication\",\"ChatInitialization\")\r\n| summarize ['Messaging conversations']=dcount(ConversationId)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-4982b209-d1c6-4b15-b197-a96494ad00ae",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Authentication failures",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario in (\"ChatAuthentication\",\"AuthTokenValidation\")\r\n| summarize ['Authentication issues']=countif(Description has_any (\"fail\",\"error\",\"invalid\") or message has_any (\"fail\",\"error\",\"invalid\"))",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-b4aaa823-ee96-41f8-958a-ca326b14fac5",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Timeout events",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| summarize ['Timeout events']=countif(Subscenario in (\"TimeoutRuleTriggered\",\"ProactiveChatTimeOut\",\"CSRNotificationTimeout\"))",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-3ef347e2-5318-42cf-9341-5790f17711f6",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Messaging event trend",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Channel has_any (\"chat\",\"message\",\"sms\",\"whatsapp\",\"facebook\",\"teams\")\r\n    or Subscenario in (\"MessageProcessed\",\"ChatReconnection\",\"ChatAuthentication\",\"TimeoutRuleTriggered\",\"MessageReceived\",\"MessageSent\",\"ChatInitialization\",\"ChatSessionInitialization\")\r\n| summarize Events=count() by bin(timestamp,{TimeRange:grain}), Subscenario\r\n| order by timestamp asc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "timechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-bb34e380-753c-4fad-9ad7-6724490da80b",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Messaging lifecycle distribution",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario in (\"ChatReconnection\",\"ChatAuthentication\",\"MessageProcessed\",\"TimeoutRuleTriggered\",\"PostChatSurvey\",\"DownloadTranscripts\",\"EmailTranscripts\",\"MessageReceived\",\"MessageSent\",\"ChatInitialization\",\"ChatSessionInitialization\",\"OutOfOperatingHours\",\"UnrecognizedOrgUrl\")\r\n| summarize Events=count(), Conversations=dcount(ConversationId) by Subscenario\r\n| order by Events desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "barchart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-f154ddbe-3d01-40ed-8b9f-c23575d069f4",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Messaging errors",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Channel has_any (\"chat\",\"message\",\"sms\",\"whatsapp\",\"facebook\",\"teams\")\r\n| where Description has_any (\"error\",\"fail\",\"timeout\",\"invalid\",\"disconnect\") or Subscenario in (\"TimeoutRuleTriggered\",\"ChatAuthentication\",\"UnrecognizedOrgUrl\",\"OutOfOperatingHours\")\r\n| summarize Events=count() by Subscenario\r\n| order by Events desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "piechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-dd4fc119-450d-4cf8-8dbb-466aa49d314c",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Messaging issue details",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Channel has_any (\"chat\",\"message\",\"sms\",\"whatsapp\",\"facebook\",\"teams\")\r\n    or Subscenario in (\"ChatReconnection\",\"ChatAuthentication\",\"MessageProcessed\",\"TimeoutRuleTriggered\",\"UnrecognizedOrgUrl\",\"OutOfOperatingHours\")\r\n| where Description has_any (\"error\",\"fail\",\"timeout\",\"invalid\",\"disconnect\") or Subscenario in (\"TimeoutRuleTriggered\",\"ChatAuthentication\",\"UnrecognizedOrgUrl\",\"OutOfOperatingHours\")\r\n| project timestamp, ConversationId, Channel, Subscenario, Event, Action, Description, operation_Id, customDimensions\r\n| order by timestamp desc\r\n| take 500",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "name": "page-Routing",
+      "conditionalVisibility": {
+        "value": "Routing",
+        "comparison": "isEqualTo",
+        "parameterName": "SelectedPage"
+      },
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Routing",
+        "expandable": false,
+        "expanded": true,
+        "items": [
+          {
+            "type": 1,
+            "name": "text-f7e9e6d9-5bc3-40ab-a5b1-a4b54843281c",
+            "content": {
+              "json": "## Unified routing and assignment\nQueue routing, overflow, fallback, assignment latency, rejection, and full conversation flow."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-ba45980b-edd0-4a2c-b120-159200c8210f",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Processed conversations",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| extend QueueName=tostring(Result.DisplayName)\r\n| where \"{Queue}\" == \"*\" or QueueName == \"{Queue}\"\r\n| summarize ['Processed conversations']=dcount(ConversationId)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-52bf87a3-df23-4405-acb6-b2c3b5586c3d",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Rejected assignments",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| extend QueueName=tostring(Result.DisplayName)\r\n| where \"{Queue}\" == \"*\" or QueueName == \"{Queue}\"\r\n| summarize ['Rejected assignments']=countif(Subscenario == \"CSRRejected\")",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-3404f509-ac61-42e6-9b51-ef79f7c133b3",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Assignment time P95",
+              "query": "let events =\r\ntraces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario in (\"RouteToQueue\",\"CSRAccepted\")\r\n| project timestamp, ConversationId, Subscenario;\r\nlet routed=events | where Subscenario==\"RouteToQueue\" | project RouteTime=timestamp, ConversationId;\r\nlet accepted=events | where Subscenario==\"CSRAccepted\" | project AcceptTime=timestamp, ConversationId;\r\nrouted\r\n| join kind=inner accepted on ConversationId\r\n| where RouteTime <= AcceptTime\r\n| summarize RouteTime=max(RouteTime) by ConversationId, AcceptTime\r\n| extend AssignmentSeconds=datetime_diff(\"second\",AcceptTime,RouteTime)\r\n| summarize ['P95 assignment seconds']=percentile(AssignmentSeconds,95)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "25"
+          },
+          {
+            "type": 3,
+            "name": "query-79db54c8-def5-4ab0-966d-38194ac1375d",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Assignment latency trend",
+              "query": "let events =\r\ntraces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario in (\"RouteToQueue\",\"CSRAccepted\")\r\n| project timestamp, ConversationId, Subscenario;\r\nlet routed=events | where Subscenario==\"RouteToQueue\" | project RouteTime=timestamp, ConversationId;\r\nlet accepted=events | where Subscenario==\"CSRAccepted\" | project AcceptTime=timestamp, ConversationId;\r\nrouted\r\n| join kind=inner accepted on ConversationId\r\n| where RouteTime <= AcceptTime\r\n| summarize RouteTime=max(RouteTime) by ConversationId, AcceptTime\r\n| extend AssignmentSeconds=datetime_diff(\"second\",AcceptTime,RouteTime)\r\n| summarize P50=percentile(AssignmentSeconds,50), P95=percentile(AssignmentSeconds,95), Conversations=count() by bin(AcceptTime,{TimeRange:grain})\r\n| order by AcceptTime asc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "timechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-be13a815-e7e2-4725-92bb-d82474360a86",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Queue routing",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario == \"RouteToQueue\"\r\n| extend QueueName=tostring(Result.DisplayName)\r\n| where \"{Queue}\" == \"*\" or QueueName == \"{Queue}\"\r\n| summarize Conversations=dcount(ConversationId), Events=count() by QueueName\r\n| order by Conversations desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "barchart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-1588d47f-cd2b-465c-8551-d995a505eb33",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Non-assignment reasons",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where Subscenario in (\"CSRRejected\",\"CSRNotificationTimeout\",\"ConversationAutoRejected\",\"CSRAvailabilityCheck\")\r\n| summarize Events=count(), Conversations=dcount(ConversationId) by Subscenario, Description\r\n| top 30 by Events desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "piechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-3dbb4e88-6e16-46b1-93fc-866e348a39ad",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Overflow and fallback events",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| extend QueueName=tostring(Result.DisplayName)\r\n| where \"{Queue}\" == \"*\" or QueueName == \"{Queue}\"\r\n| where tostring(AdditionalInfo) contains \"OverflowTrigger\"\r\n    or Action == \"FallbackTriggered\"\r\n    or Description has_any (\"fallback\",\"overflow\")\r\n| project timestamp, ConversationId, Channel, QueueName, Subscenario, Action, Description, AdditionalInfo\r\n| order by timestamp desc\r\n| take 300",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-eba252ed-f56d-4c01-8ad1-e9ddbeaa30fe",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Conversation state flows",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| extend QueueName=tostring(Result.DisplayName)\r\n| where \"{Queue}\" == \"*\" or QueueName == \"{Queue}\"\r\n| where isnotempty(ConversationId) and isnotempty(Subscenario)\r\n| order by timestamp asc\r\n| summarize LastUpdated=max(timestamp), Channel=take_any(Channel), Queue=take_any(QueueName), Flow=strcat_array(make_list(Subscenario), \" -> \") by ConversationId\r\n| order by LastUpdated desc\r\n| take 300",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "name": "page-APIs",
+      "conditionalVisibility": {
+        "value": "APIs",
+        "comparison": "isEqualTo",
+        "parameterName": "SelectedPage"
+      },
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "APIs",
+        "expandable": false,
+        "expanded": true,
+        "items": [
+          {
+            "type": 1,
+            "name": "text-45d6dd47-7f55-4fec-9eb4-269fba42b05f",
+            "content": {
+              "json": "## Dataverse APIs and throttling\nHTTP 429 impact, API latency, query throttling, callers, and the successful work that occupied execution time."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-d82d8467-4099-4706-8a35-fb2a59e2929c",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "API requests",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize ['API requests']=count()",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-a64ecd41-3140-421f-b009-51f87d278679",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "HTTP 429",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize ['HTTP 429']=countif(resultCode==\"429\")",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-a138ffc8-5cfc-4132-ae40-8047c1f56883",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "API failures",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize ['API failures']=countif(success==false)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-c64f2da1-c4c1-455d-9b12-7b22931edeef",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Slow requests",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize ['Slow requests']=countif(duration > toreal(\"{SlowThresholdMs}\"))",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-fa8eab3a-61c5-41e5-a0dc-d23321c6f215",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "429 and latency trend",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize Requests=count(), Throttled=countif(resultCode==\"429\"), P95Duration=percentile(duration,95) by bin(timestamp,{TimeRange:grain})\r\n| order by timestamp asc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "timechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-cd4d0435-9ffe-4ed8-b23d-f6bfdb7dbe2d",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Top throttled operations",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where resultCode==\"429\"\r\n| summarize Responses=count(), Users=dcount(user_Id), P95Duration=percentile(duration,95) by operation_Name\r\n| top 30 by Responses desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "barchart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-36a2059c-7a9c-415b-a488-6e87d9d3f603",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Query-throttling reasons",
+              "query": "union isfuzzy=true\r\n    (traces | where timestamp {TimeRange}),\r\n    (customEvents | where timestamp {TimeRange})\r\n| extend cd=todynamic(customDimensions)\r\n| where name =~ \"QueryThrottled\"\r\n    or tostring(cd.throttlingAction) in~ (\"Throttle\", \"Delay\", \"Fail\")\r\n    or isnotempty(tostring(cd.CdsQueryHash))\r\n| extend\r\n    QueryHash=coalesce(tostring(cd.CdsQueryHash), tostring(cd.cdsQueryHash)),\r\n    ThrottleAction=coalesce(tostring(cd.throttlingAction), tostring(cd.ThrottleAction)),\r\n    ThrottleReason=coalesce(tostring(cd.throttleReason), tostring(cd.ThrottleReason)),\r\n    DelayMs=tolong(coalesce(tostring(cd.throttlingDelayMilliseconds), tostring(cd.delayMs))),\r\n    Probability=coalesce(todouble(cd.throttleProbabilityPercentage), todouble(cd.probability)),\r\n    ExpiryTime=todatetime(cd.throttleExpiryTime),\r\n    Command=coalesce(tostring(cd.Command), tostring(cd.command)),\r\n    Organization=coalesce(tostring(cd.environmentId), tostring(cd.EnvironmentId), tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize Events=count(), AvgDelayMs=avg(DelayMs) by Reason=iff(isempty(ThrottleReason),\"(unspecified)\",ThrottleReason)\r\n| top 20 by Events desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "piechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-ff2a0cf2-afdd-4b3f-bc67-70167aff9eca",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Top query hashes and delay",
+              "query": "union isfuzzy=true\r\n    (traces | where timestamp {TimeRange}),\r\n    (customEvents | where timestamp {TimeRange})\r\n| extend cd=todynamic(customDimensions)\r\n| where name =~ \"QueryThrottled\"\r\n    or tostring(cd.throttlingAction) in~ (\"Throttle\", \"Delay\", \"Fail\")\r\n    or isnotempty(tostring(cd.CdsQueryHash))\r\n| extend\r\n    QueryHash=coalesce(tostring(cd.CdsQueryHash), tostring(cd.cdsQueryHash)),\r\n    ThrottleAction=coalesce(tostring(cd.throttlingAction), tostring(cd.ThrottleAction)),\r\n    ThrottleReason=coalesce(tostring(cd.throttleReason), tostring(cd.ThrottleReason)),\r\n    DelayMs=tolong(coalesce(tostring(cd.throttlingDelayMilliseconds), tostring(cd.delayMs))),\r\n    Probability=coalesce(todouble(cd.throttleProbabilityPercentage), todouble(cd.probability)),\r\n    ExpiryTime=todatetime(cd.throttleExpiryTime),\r\n    Command=coalesce(tostring(cd.Command), tostring(cd.command)),\r\n    Organization=coalesce(tostring(cd.environmentId), tostring(cd.EnvironmentId), tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize Events=count(), AvgDelayMs=round(avg(DelayMs),1), P95DelayMs=percentile(DelayMs,95), MaxDelayMs=max(DelayMs), SampleCommand=take_any(substring(Command,0,500)) by QueryHash, ThrottleAction, ThrottleReason\r\n| top 100 by Events desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-52a9a8ef-061e-4550-865a-7b7617ca5ac4",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Successful callers by occupied execution time",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where resultCode startswith \"2\"\r\n| extend AppId=coalesce(tostring(cd.appId),tostring(cd.applicationId),tostring(cd.aadAppId))\r\n| summarize Successful=count(), TotalOccupiedMs=sum(duration), AvgDuration=avg(duration), P95Duration=percentile(duration,95), MaxDuration=max(duration) by user_Id, AppId, operation_Name\r\n| top 100 by TotalOccupiedMs desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-4a6df806-dc40-4722-9720-8e8a8f1d78de",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Recent throttling details",
+              "query": "requests\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where resultCode==\"429\"\r\n| project timestamp, operation_Name, name, duration, user_Id, session_Id, operation_Id, operation_ParentId, url, customDimensions\r\n| order by timestamp desc\r\n| take 500",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "name": "page-Failures",
+      "conditionalVisibility": {
+        "value": "Failures",
+        "comparison": "isEqualTo",
+        "parameterName": "SelectedPage"
+      },
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Failures",
+        "expandable": false,
+        "expanded": true,
+        "items": [
+          {
+            "type": 1,
+            "name": "text-a690b7cb-fb5c-4a29-9719-7287f3645f18",
+            "content": {
+              "json": "## Failures and performance\nExceptions, failed requests, plug-ins, SDK calls, form loads, and outbound dependencies."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-8108ffd2-6fcb-46f7-892a-acfb5b71f869",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Exceptions",
+              "query": "exceptions\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize Exceptions=count()",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-517c68d6-5672-4b94-af9a-00d4cfdd3fab",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Failed plug-ins",
+              "query": "dependencies\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize ['Failed plug-ins']=countif(type==\"Plugin\" and success==false)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-fba5250d-9019-4dd7-9d89-bb8befbc2739",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Failed SDK calls",
+              "query": "dependencies\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize ['Failed SDK calls']=countif(type startswith \"SDK\" and success==false)",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-33b093e2-e7fc-45fe-bde6-c4e25f720587",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Slow form loads",
+              "query": "pageViews\r\n| where timestamp {TimeRange}\r\n| summarize ['Slow form loads']=countif(duration > toreal(\"{SlowThresholdMs}\"))",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "20"
+          },
+          {
+            "type": 3,
+            "name": "query-1ba44f49-727a-4868-aa7d-a7f821c4795b",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Exception trend",
+              "query": "exceptions\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| summarize Exceptions=count() by bin(timestamp,{TimeRange:grain}), problemId\r\n| order by timestamp asc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "timechart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-5d079a4c-b64d-4fd5-a22f-f34eaf52a0da",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Top exceptions",
+              "query": "exceptions\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| extend Entity=tostring(cd.entityName), Plugin=tostring(cd.pluginName), Source=tostring(cd.exceptionSource)\r\n| summarize Exceptions=count(), Users=dcount(user_Id), LastSeen=max(timestamp), SampleMessage=take_any(outerMessage) by problemId, type, Entity, Plugin, Source\r\n| top 50 by Exceptions desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "barchart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-da5e2157-81c2-43be-aa2c-538b58db89db",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Plug-in performance",
+              "query": "dependencies\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where type==\"Plugin\"\r\n| summarize Executions=count(), Failures=countif(success==false), TotalOccupiedMs=sum(duration), P95Duration=percentile(duration,95), MaxDuration=max(duration) by name, target\r\n| top 50 by TotalOccupiedMs desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "barchart",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            },
+            "customWidth": "50"
+          },
+          {
+            "type": 3,
+            "name": "query-b6b1058e-44e4-4846-8124-615c36a7860b",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "SDK performance",
+              "query": "dependencies\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where type startswith \"SDK\"\r\n| summarize Executions=count(), Failures=countif(success==false), TotalOccupiedMs=sum(duration), P95Duration=percentile(duration,95), MaxDuration=max(duration) by type, name, target\r\n| top 100 by TotalOccupiedMs desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-3c045c34-5cc3-435d-bbe9-05a3f47e31a6",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Form and page-load performance",
+              "query": "pageViews\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions), Entity=tostring(customDimensions.entityName), LoadType=tostring(customDimensions.loadType)\r\n| summarize Loads=count(), AvgDuration=avg(duration), P75Duration=percentile(duration,75), P95Duration=percentile(duration,95), MaxDuration=max(duration) by name, Entity, LoadType\r\n| top 100 by P95Duration desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-4ab6a2cd-adda-481e-bb05-4fb4eea3d5a8",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Outbound dependency failures",
+              "query": "dependencies\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend Organization=coalesce(\r\n    tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    tostring(cd.environmentId),\r\n    tostring(cd.EnvironmentId),\r\n    tostring(cd.organizationUrl))\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where type!=\"Plugin\" and not(type startswith \"SDK\")\r\n| where success==false or duration > toreal(\"{SlowThresholdMs}\")\r\n| project timestamp, type, name, target, resultCode, duration, success, operation_Id, operation_ParentId, customDimensions\r\n| order by timestamp desc\r\n| take 500",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "name": "page-Investigator",
+      "conditionalVisibility": {
+        "value": "Investigator",
+        "comparison": "isEqualTo",
+        "parameterName": "SelectedPage"
+      },
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Investigator",
+        "expandable": false,
+        "expanded": true,
+        "items": [
+          {
+            "type": 1,
+            "name": "text-6612ae08-81d7-4039-9728-073aa220e41a",
+            "content": {
+              "json": "## Conversation and correlation investigator\nEnter a conversation ID, operation ID, parent ID, item ID, or service-request ID in the global filter."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-14b218d1-1845-4ff7-ab2e-ba7c13e76011",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Conversation lifecycle",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend\r\n    Scenario=tostring(cd[\"powerplatform.analytics.scenario\"]),\r\n    Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]),\r\n    ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]),\r\n    Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]),\r\n    Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)),\r\n    EventType=tostring(cd.type),\r\n    Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])),\r\n    Action=tostring(cd[\"omnichannel.action\"]),\r\n    Event=tostring(cd[\"omnichannel.event\"]),\r\n    AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])),\r\n    CallId=tostring(cd[\"omnichannel.call.id\"]),\r\n    CallStatusCode=toint(cd.CallStatusCode),\r\n    AdditionalInfo=todynamic(cd[\"omnichannel.additional_info\"]),\r\n    Result=todynamic(cd[\"omnichannel.result\"])\r\n| where Scenario == \"ConversationDiagnosticsScenario\" or isnotempty(Subscenario)\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where isempty(\"{InvestigationId}\")\r\n    or ConversationId contains \"{InvestigationId}\"\r\n    or operation_Id contains \"{InvestigationId}\"\r\n    or operation_ParentId contains \"{InvestigationId}\"\r\n    or itemId contains \"{InvestigationId}\"\r\n| project timestamp, ConversationId, Channel, Subscenario, EventType, Event, Action, Description, AgentId, CallId, operation_Id, operation_ParentId, itemId, customDimensions\r\n| order by timestamp asc\r\n| take 1000",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-c42c9a50-7315-42df-9d9a-75508cc61a40",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Correlated Dataverse telemetry",
+              "query": "union isfuzzy=true withsource=TelemetryTable requests, dependencies, exceptions, traces, customEvents, pageViews\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| where isempty(\"{InvestigationId}\")\r\n    or operation_Id contains \"{InvestigationId}\"\r\n    or operation_ParentId contains \"{InvestigationId}\"\r\n    or itemId contains \"{InvestigationId}\"\r\n    or tostring(cd.requestId) contains \"{InvestigationId}\"\r\n    or tostring(cd.serviceRequestId) contains \"{InvestigationId}\"\r\n    or tostring(cd[\"powerplatform.analytics.resource.id\"]) contains \"{InvestigationId}\"\r\n| project timestamp, TelemetryTable, name, operation_Name, operation_Id, operation_ParentId, itemId, success, resultCode, duration, message, outerMessage, type, target, customDimensions\r\n| order by timestamp asc\r\n| take 2000",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-4b1094bc-5d3e-4a61-b35e-e0cf19e1437e",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Raw custom dimensions",
+              "query": "union isfuzzy=true withsource=TelemetryTable traces, requests, dependencies, exceptions, customEvents\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| where isempty(\"{InvestigationId}\")\r\n    or operation_Id contains \"{InvestigationId}\"\r\n    or operation_ParentId contains \"{InvestigationId}\"\r\n    or itemId contains \"{InvestigationId}\"\r\n    or tostring(cd[\"powerplatform.analytics.resource.id\"]) contains \"{InvestigationId}\"\r\n| mv-expand Key=bag_keys(cd)\r\n| project timestamp, TelemetryTable, Key=tostring(Key), Value=tostring(cd[tostring(Key)]), operation_Id, operation_ParentId\r\n| order by timestamp asc, Key asc\r\n| take 5000",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "fallbackResourceIds": [],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
