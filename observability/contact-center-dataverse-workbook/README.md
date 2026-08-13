@@ -161,13 +161,16 @@ Use this page first to confirm data readiness and identify which operational are
 
 ### Conversation Lifecycle
 
-Turns one conversation's exported diagnostic events into a presentation-friendly journey. Enter a conversation or correlation ID in the global filter to see:
+Turns one conversation's diagnostic events into a presentation-friendly, left-to-right customer journey. The page contains one full-width graph rather than a telemetry table. Each stage appears once:
 
-- a summary card with channel, start/end timestamps, duration, event count, and final observed stage;
-- ordered event cards that show the original event name, a simplified journey stage, event time, and time since the previous event;
-- a detailed chronological table retaining queue, agent, call, event, action, description, and operation identifiers.
+1. Customer arrived
+2. Routed
+3. Agent assigned
+4. Connected
+5. Conversation
+6. Completed
 
-The lifecycle KQL sorts and serializes the trace stream before assigning step numbers and calculating the gap from `prev(timestamp)`. It classifies known subscenarios into Arrival, Routing, Assignment, Engagement, Transfer / consult, and Closure. Unknown events remain visible as `Journey event`; the classification does not discard telemetry.
+The lifecycle KQL maps low-level events into these business stages, summarizes each stage, and joins only the stages observed for the selected conversation. Nodes show a plain-language outcome and stage timing. Connectors show elapsed time between stages. Assignment failures and timeouts are surfaced as `Needs attention`, but raw subscenario, action, event, operation, agent, and call fields remain on the Investigator page.
 
 This page intentionally returns no data until `InvestigationId` is populated, avoiding a misleading lifecycle assembled from multiple conversations.
 
