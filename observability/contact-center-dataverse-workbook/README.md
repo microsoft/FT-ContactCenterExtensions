@@ -159,6 +159,18 @@ Summarizes conversation events, distinct conversations, HTTP 429 responses, and 
 
 Use this page first to confirm data readiness and identify which operational area needs investigation.
 
+### Conversation Lifecycle
+
+Turns one conversation's exported diagnostic events into a presentation-friendly journey. Enter a conversation or correlation ID in the global filter to see:
+
+- a summary card with channel, start/end timestamps, duration, event count, and final observed stage;
+- ordered event cards that show the original event name, a simplified journey stage, event time, and time since the previous event;
+- a detailed chronological table retaining queue, agent, call, event, action, description, and operation identifiers.
+
+The lifecycle KQL sorts and serializes the trace stream before assigning step numbers and calculating the gap from `prev(timestamp)`. It classifies known subscenarios into Arrival, Routing, Assignment, Engagement, Transfer / consult, and Closure. Unknown events remain visible as `Journey event`; the classification does not discard telemetry.
+
+This page intentionally returns no data until `InvestigationId` is populated, avoiding a misleading lifecycle assembled from multiple conversations.
+
 ### Voice
 
 Filters voice channels and voice-specific subscenarios. It reports distinct voice conversations, call connections, unsuccessful calls, lifecycle trends, outcome codes, media/control events, transfer and consult issues, and unsuccessful call details.

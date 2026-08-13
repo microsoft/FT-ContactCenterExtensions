@@ -203,6 +203,13 @@
             "cellValue": "SelectedPage",
             "style": "link",
             "linkTarget": "parameter",
+            "linkLabel": "Conversation Lifecycle",
+            "subTarget": "Lifecycle"
+          },
+          {
+            "cellValue": "SelectedPage",
+            "style": "link",
+            "linkTarget": "parameter",
             "linkLabel": "Voice",
             "subTarget": "Voice"
           },
@@ -1440,6 +1447,159 @@
               "timeContextFromParameter": "TimeRange",
               "visualization": "table",
               "noDataMessage": "No matching telemetry has arrived for this selection.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "name": "page-Lifecycle",
+      "conditionalVisibility": {
+        "value": "Lifecycle",
+        "comparison": "isEqualTo",
+        "parameterName": "SelectedPage"
+      },
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Conversation Lifecycle",
+        "expandable": false,
+        "expanded": true,
+        "items": [
+          {
+            "type": 1,
+            "name": "text-lifecycle-introduction",
+            "content": {
+              "json": "## Conversation lifecycle\nFollow one customer conversation from arrival through routing, assignment, engagement, transfer, and closure.\n\n> Enter a **Conversation or correlation ID** in the global filters. The cards are ordered by event time and show the elapsed time from the previous event."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-lifecycle-summary",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Conversation at a glance",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]), Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]), Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)), Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]), Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"]))\r\n| where isnotempty(\"{InvestigationId}\")\r\n| where ConversationId contains \"{InvestigationId}\" or operation_Id contains \"{InvestigationId}\" or operation_ParentId contains \"{InvestigationId}\" or itemId contains \"{InvestigationId}\"\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| sort by timestamp asc\r\n| summarize Started=min(timestamp), Ended=max(timestamp), Events=count(), Channel=take_any(Channel), Stages=make_list(Subscenario), Descriptions=make_list(Description) by ConversationId\r\n| extend ['Elapsed seconds']=datetime_diff(\"millisecond\", Ended, Started) / 1000.0, LastStage=tostring(Stages[-1]), LastDescription=tostring(Descriptions[-1])\r\n| project ConversationId, Channel, Started, Ended, ['Elapsed seconds'], Events, ['Last stage']=LastStage, ['Last detail']=LastDescription",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "ConversationId",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "Elapsed seconds",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "none"
+                  },
+                  "numberFormat": {
+                    "unit": 0,
+                    "options": {
+                      "style": "decimal",
+                      "maximumFractionDigits": 1
+                    }
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "Channel",
+                  "formatter": 1
+                },
+                "showBorder": true,
+                "size": "full",
+                "styleSettings": {
+                  "borderStyle": "rounded",
+                  "backgroundColor": "colorGray100"
+                }
+              },
+              "noDataMessage": "Enter a conversation or correlation ID that has telemetry in the selected time range.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 1,
+            "name": "text-lifecycle-path",
+            "content": {
+              "json": "### Event path\nEach card is one exported diagnostic event. Stage labels group detailed subscenarios into a customer-friendly journey without hiding the original event name."
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-lifecycle-cards",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Ordered conversation path",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]), Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]), Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)), Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]), EventType=tostring(cd.type), Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])), Action=tostring(cd[\"omnichannel.action\"]), Event=tostring(cd[\"omnichannel.event\"]), AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])), CallId=tostring(cd[\"omnichannel.call.id\"]), Result=todynamic(cd[\"omnichannel.result\"])\r\n| where isnotempty(\"{InvestigationId}\")\r\n| where ConversationId contains \"{InvestigationId}\" or operation_Id contains \"{InvestigationId}\" or operation_ParentId contains \"{InvestigationId}\" or itemId contains \"{InvestigationId}\"\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where isnotempty(Subscenario) or isnotempty(Event) or isnotempty(Action) or isnotempty(Description)\r\n| sort by timestamp asc\r\n| serialize\r\n| extend Step=row_number(), PreviousTimestamp=prev(timestamp)\r\n| extend ['Since previous']=iff(isnull(PreviousTimestamp), \"Start\", strcat(tostring(datetime_diff(\"millisecond\", timestamp, PreviousTimestamp)), \" ms\")), Queue=tostring(Result.DisplayName)\r\n| extend Stage=case(Subscenario in (\"ChatInitialization\",\"ChatSessionInitialization\",\"ConversationStarted\",\"MessageReceived\"), \"1. Arrival\", Subscenario in (\"RouteToQueue\",\"CSRAvailabilityCheck\") or Action has_any (\"route\",\"queue\"), \"2. Routing\", Subscenario in (\"CSRAccepted\",\"CSRRejected\",\"CSRNotificationTimeout\",\"ConversationAutoRejected\"), \"3. Assignment\", Subscenario in (\"Call Connect\",\"MessageProcessed\",\"MessageSent\",\"Transcription\",\"Wait for Agent\"), \"4. Engagement\", Subscenario has_any (\"Transfer\",\"Consult\") or Action has_any (\"transfer\",\"consult\"), \"5. Transfer / consult\", Subscenario in (\"CustomerDisconnected\",\"Call Ended\",\"ConversationClosed\",\"PostChatSurvey\",\"DownloadTranscripts\",\"EmailTranscripts\") or Description has_any (\"closed\",\"ended\",\"disconnected\"), \"6. Closure\", \"Journey event\")\r\n| extend EventName=coalesce(Subscenario, Event, Action, EventType, \"Diagnostic event\"), Detail=coalesce(Description, Event, Action, iff(isnotempty(Queue), strcat(\"Queue: \", Queue), \"\"), EventType), ['Event time']=format_datetime(timestamp, \"HH:mm:ss.fff\")\r\n| project Step, Stage, EventName, ['Event time'], ['Since previous'], Detail, Queue, AgentId, CallId",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "EventName",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "Step",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 0,
+                    "options": {
+                      "style": "decimal",
+                      "maximumFractionDigits": 0
+                    }
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "Stage",
+                  "formatter": 1
+                },
+                "showBorder": true,
+                "size": "auto",
+                "rowLimit": 100,
+                "styleSettings": {
+                  "borderStyle": "rounded",
+                  "backgroundColor": "colorGray100"
+                }
+              },
+              "noDataMessage": "Enter a conversation or correlation ID that has lifecycle telemetry in the selected time range.",
+              "showRefreshButton": true,
+              "showExportToExcel": true
+            }
+          },
+          {
+            "type": 3,
+            "name": "query-lifecycle-details",
+            "content": {
+              "version": "KqlItem/1.0",
+              "title": "Lifecycle details",
+              "query": "traces\r\n| where timestamp {TimeRange}\r\n| extend cd=todynamic(customDimensions)\r\n| extend ConversationId=tostring(cd[\"powerplatform.analytics.resource.id\"]), Organization=tostring(cd[\"powerplatform.analytics.resource.organization.id\"]), Channel=coalesce(tostring(cd[\"omnichannel.channel.type\"]), tostring(cd.ChannelType), tostring(cd.channelType)), Subscenario=tostring(cd[\"powerplatform.analytics.subscenario\"]), EventType=tostring(cd.type), Description=coalesce(tostring(cd[\"omnichannel.description\"]), tostring(cd[\"Omnichannel.description\"])), Action=tostring(cd[\"omnichannel.action\"]), Event=tostring(cd[\"omnichannel.event\"]), AgentId=coalesce(tostring(cd[\"omnichannel.target_agent.id\"]), tostring(cd[\"omnichannel.agent.id\"])), CallId=tostring(cd[\"omnichannel.call.id\"]), Queue=tostring(parse_json(tostring(cd[\"omnichannel.result\"])).DisplayName)\r\n| where isnotempty(\"{InvestigationId}\")\r\n| where ConversationId contains \"{InvestigationId}\" or operation_Id contains \"{InvestigationId}\" or operation_ParentId contains \"{InvestigationId}\" or itemId contains \"{InvestigationId}\"\r\n| where \"{Organization}\" == \"*\" or Organization == \"{Organization}\"\r\n| where \"{Channel}\" == \"*\" or Channel == \"{Channel}\"\r\n| where isnotempty(Subscenario) or isnotempty(Event) or isnotempty(Action) or isnotempty(Description)\r\n| sort by timestamp asc\r\n| serialize Step=row_number()\r\n| project Step, timestamp, Subscenario, Event, Action, Description, Queue, AgentId, CallId, EventType, operation_Id",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.insights/components",
+              "crossComponentResources": [
+                "{ApplicationInsightsResource}"
+              ],
+              "timeContextFromParameter": "TimeRange",
+              "visualization": "table",
+              "noDataMessage": "Enter a conversation or correlation ID that has lifecycle telemetry in the selected time range.",
               "showRefreshButton": true,
               "showExportToExcel": true
             }
